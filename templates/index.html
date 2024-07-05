@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Entity Extractor</title>
+    <style>
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .output {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Upload a PDF File</h2>
+        <input type="file" id="pdfFile" accept=".pdf" />
+        <br /><br />
+        <button onclick="uploadPDF()">Extract Entities</button>
+        <div class="output" id="output"></div>
+    </div>
+
+    <script>
+        async function uploadPDF() {
+            const fileInput = document.getElementById('pdfFile');
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/process_pdf', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+                const outputDiv = document.getElementById('output');
+                outputDiv.innerHTML = '<h3>Extracted Entities:</h3><ul>';
+                for (const [label, texts] of Object.entries(data.entities)) {
+                    texts.forEach(text => {
+                        outputDiv.innerHTML += `<li>${label}: ${text}</li>`;
+                    });
+                }
+                outputDiv.innerHTML += '</ul>';
+            } catch (error) {
+                console.error('Error:', error);
+                const outputDiv = document.getElementById('output');
+                outputDiv.innerHTML = '<p>Error extracting entities. Please try again.</p>';
+            }
+        }
+    </script>
+</body>
+</html>
